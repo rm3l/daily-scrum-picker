@@ -1,0 +1,82 @@
+variables:
+  # Default values - can be overridden in GitLab project variables
+  QUAY_REGISTRY: "quay.io"
+  QUAY_REPOSITORY: "asoro/rhdh-install-daily-scrum-picker"
+  GO_VERSION: "1.24.4"
+
+stages:
+  - test
+  - build
+  - push
+
+# Test stage - run basic checks
+test:
+  stage: test
+  image: golang:${GO_VERSION}-alpine
+  script:
+    - go mod download
+    - go vet ./...
+    - go test -v ./...
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Build and push container image
+build-and-push:
+  stage: push
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    # Login to Quay.io
+    - echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
+  script:
+    # Build the container image
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+        # Main branch - tag as latest and with commit SHA
+        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
+        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA .
+        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
+        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA
+      elif [ -n "$CI_COMMIT_TAG" ]; then
+        # Tagged release - use the tag
+        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG .
+        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
+        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG
+        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
+      else
+        # Feature branch - tag with branch name
+        BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | tr '/' '-')
+        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA .
+        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+  needs: []
+
+# Optional: Build multi-arch images (uncomment if needed)
+# build-multiarch:
+#   stage: push
+#   image: docker:24-dind
+#   services:
+#     - docker:24-dind
+#   variables:
+#     DOCKER_TLS_CERTDIR: "/certs"
+#   before_script:
+#     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+#     - docker buildx create --use --name multiarch-builder
+#     - echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
+#   script:
+#     - |
+#       if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+#         docker buildx build --platform linux/amd64,linux/arm64 -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest --push .
+#       fi
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#       when: manual 
