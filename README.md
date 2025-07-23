@@ -1,5 +1,7 @@
 # Daily Scrum Picker
 
+[![Build and publish container image](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml/badge.svg)](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml)
+
 A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings.
 
 **NOTE**: Assisted by AI as a quick experiment to get something up and running in a few minutes.
