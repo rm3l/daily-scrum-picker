@@ -17,7 +17,7 @@ test:
   stage: test
   image: golang:${GO_VERSION}-alpine
   tags:
-    - shared
+    - shared-podman
   script:
     - go mod download
     - go vet ./...
@@ -29,36 +29,36 @@ test:
 # Build and push container image
 build-and-push:
   stage: push
-  image: docker:24-dind
-  services:
-    - docker:24-dind
+  image: images.paas.redhat.com/alm/buildah:latest
+  #services:
+  #  - docker:24-dind
   tags:
-    - shared
+    - shared-podman
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
   before_script:
     # Login to Quay.io
-    - echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
+    - echo "$QUAY_PASSWORD" | podman login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
   script:
     # Build the container image
     - |
       if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
         # Main branch - tag as latest and with commit SHA
-        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
-        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA .
-        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
-        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA
+        podman build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
+        podman build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA .
+        podman push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
+        podman push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_SHORT_SHA
       elif [ -n "$CI_COMMIT_TAG" ]; then
         # Tagged release - use the tag
-        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG .
-        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
-        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG
-        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
+        podman build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG .
+        podman build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest .
+        podman push $QUAY_REGISTRY/$QUAY_REPOSITORY:$CI_COMMIT_TAG
+        podman push $QUAY_REGISTRY/$QUAY_REPOSITORY:latest
       else
         # Feature branch - tag with branch name
         BRANCH_TAG=$(echo $CI_COMMIT_REF_NAME | tr '/' '-')
-        docker build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA .
-        docker push $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA
+        podman build -t $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA .
+        podman push $QUAY_REGISTRY/$QUAY_REPOSITORY:$BRANCH_TAG-$CI_COMMIT_SHORT_SHA
       fi
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -76,13 +76,13 @@ build-and-push:
 #   variables:
 #     DOCKER_TLS_CERTDIR: "/certs"
 #   before_script:
-#     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-#     - docker buildx create --use --name multiarch-builder
-#     - echo "$QUAY_PASSWORD" | docker login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
+#     - podman run --rm --privileged multiarch/qemu-user-static --reset -p yes
+#     - podman buildx create --use --name multiarch-builder
+#     - echo "$QUAY_PASSWORD" | podman login -u "$QUAY_USERNAME" --password-stdin $QUAY_REGISTRY
 #   script:
 #     - |
 #       if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
-#         docker buildx build --platform linux/amd64,linux/arm64 -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest --push .
+#         podman buildx build --platform linux/amd64,linux/arm64 -t $QUAY_REGISTRY/$QUAY_REPOSITORY:latest --push .
 #       fi
 #   rules:
 #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
