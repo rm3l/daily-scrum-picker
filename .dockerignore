@@ -1,0 +1,19 @@
+# Git files
+.git/
+.gitignore
+
+# Documentation
+README.md
+
+# CI/CD files
+.gitlab-ci.yml
+
+# Runtime state files (these should be mounted as volumes)
+remaining.txt
+
+# Build artifacts
+scrum-picker
+
+# Development files
+*.log
+*.tmp 
