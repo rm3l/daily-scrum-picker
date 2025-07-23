@@ -2,6 +2,8 @@
 
 A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings.
 
+**NOTE**: Assisted by AI to get something up and running in a few minutes.
+
 ## Overview
 
 This tool ensures fair rotation of team members during daily stand-ups by automatically tracking who has spoken and resetting when everyone has had a turn.
