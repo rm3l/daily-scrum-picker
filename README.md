@@ -2,7 +2,7 @@
 
 A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings.
 
-**NOTE**: Assisted by AI to get something up and running in a few minutes.
+**NOTE**: Assisted by AI as a quick experiment to get something up and running in a few minutes.
 
 ## Overview
 
