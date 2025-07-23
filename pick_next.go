@@ -38,6 +38,8 @@ const (
 	BrightRed = "\033[91m"       // Bright red - good on both
 )
 
+const goodbyeMessage = "Goodbye!"
+
 func getTeamFile() string {
 	if teamFile := os.Getenv("TEAM_FILE"); teamFile != "" {
 		return teamFile
@@ -114,11 +116,11 @@ func runRawMode(teamMembers []string, stateFile string) {
 		char := buf[0]
 
 		// Handle Ctrl+C
-		if char == 3 {
-			// Restore terminal before exiting
 			term.Restore(int(os.Stdin.Fd()), oldState)
 			fmt.Print("\n")
-			fmt.Println("Goodbye!")
+			fmt.Println(goodbyeMessage)
+			return
+		}
 			return
 		}
 
@@ -143,11 +145,11 @@ func runRawMode(teamMembers []string, stateFile string) {
 			resetState(teamMembers, stateFile)
 		case "s":
 			showStatus(teamMembers, stateFile)
-		case "h":
-			showHelp()
 		case "q":
-			fmt.Println("Goodbye!")
+			fmt.Println(goodbyeMessage)
 			return
+		default:
+			fmt.Printf("Unknown command: '%s'. Press 'h' for help.\n", input)
 		default:
 			fmt.Printf("Unknown command: '%s'. Press 'h' for help.\n", input)
 		}
@@ -181,11 +183,11 @@ func runBufferedMode(teamMembers []string, stateFile string) {
 			resetState(teamMembers, stateFile)
 		case "s", "status":
 			showStatus(teamMembers, stateFile)
-		case "h", "help":
-			showHelp()
 		case "q", "quit", "exit":
-			fmt.Println("Goodbye!")
+			fmt.Println(goodbyeMessage)
 			return
+		case "":
+			// Empty input, just continue
 		case "":
 			// Empty input, just continue
 			continue

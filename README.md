@@ -16,67 +16,69 @@ This tool ensures fair rotation of team members during daily stand-ups by automa
 ## Installation
 
 ### Prerequisites
+
 - Go 1.24+
 
 ### Setup
+
 ```bash
-git clone https://gitlab.cee.redhat.com/asoro/rhdh-install-daily-scrum-picker.git && cd rhdh-install-daily-scrum-picker
+git clone https://github.com/rm3l/daily-scrum-picker.git && cd daily-scrum-picker
 ```
 
 ## Usage
 
 ### Local Development
 
-Simply run with Go:
+1. Create a local `teams.txt` file containing the names of your team members. See [Team members](#team-members) for more details.
+
+2. Simply run with Go:
+
 ```bash
 go run pick_next.go
 ```
 
 Alternatively, you can build and run the executable:
+
 ```bash
-go build -o scrum-picker pick_next.go
-./scrum-picker
+go build -o daily-scrum-picker pick_next.go
+./daily-scrum-picker
 ```
 
 ### Container Usage
 
-The application is also available as a container image on Quay.io. This allows you to use the tool without cloning the repository or installing Go.
+The application is also available as a container image on ghcr.io. This allows you to use the tool without cloning the repository or installing Go.
 
 #### Interactive Mode
 
 The tool runs in interactive mode with **single-keypress commands** - no need to press Enter:
 
 ```bash
-# Run with the default team.txt file included in the container
-podman run -it --rm quay.io/asoro/rhdh-install-daily-scrum-picker:latest
+# Mount your custom team file
+podman run -it --rm -v ./my-team.txt:/app/team.txt ghcr.io/rm3l/daily-scrum-picker:latest
+
+# Or use a different file path with environment variable
+podman run -it --rm -v ./teams:/app/teams -e TEAM_FILE=teams/backend.txt ghcr.io/rm3l/daily-scrum-picker:latest
 ```
 
 **Available commands (single keypress):**
+
 - **`p`** - Pick the next person for daily scrum
 - **`r`** - Reset and start over with all team members  
 - **`s`** - Show current status and remaining team members
 - **`h`** - Show help message
 - **`q`** - Exit the program
 
-**Note:** 
+**Notes:** 
+
 - Use the `-it` flags to enable interactive mode with proper terminal support
 - Commands respond immediately without pressing Enter
 - Fallback to Enter-required mode if raw terminal access is unavailable
 
-#### Using a Custom Team File
-
-```bash
-# Mount your custom team file
-podman run -it --rm -v ./my-team.txt:/app/team.txt quay.io/asoro/rhdh-install-daily-scrum-picker:latest
-
-# Or use a different file path with environment variable
-podman run -it --rm -v ./teams:/app/teams -e TEAM_FILE=teams/backend.txt quay.io/asoro/rhdh-install-daily-scrum-picker:latest
-```
-
 ### Output Examples
 
 **Interactive session:**
-```
+
+```txt
 === Daily Scrum Picker ===
 Team file: team.txt (6 members)
 
@@ -107,11 +109,11 @@ Goodbye!
 
 ### Team Members
 
-Team members are configured via a team file. By default, the tool looks for `team.txt`, but you can specify a different file using the `TEAM_FILE` environment variable.
+Team members are configured via a team file. By default, the tool looks for `team.txt` in the same directory where it is run, but you can specify a different file using the `TEAM_FILE` environment variable.
 
 Create or edit the team file with one team member name per line:
 
-```
+```txt
 # Daily Scrum Team Members
 # Add one team member name per line
 # Lines starting with # are ignored
@@ -134,28 +136,15 @@ The tool supports the `TEAM_FILE` environment variable for configuration:
 
 ```bash
 # Use a different team file
-export TEAM_FILE="my-team.txt"
+export TEAM_FILE="/path/to/my-team.txt"
 go run pick_next.go
 
 # Use specific team file
-TEAM_FILE="teams/backend-team.txt" go run pick_next.go
+TEAM_FILE="/path/to/teams/backend-team.txt" go run pick_next.go
 
 # Container usage with custom team file
 podman run -it --rm \
   -v ./teams:/app/teams \
   -e TEAM_FILE=teams/backend.txt \
-  quay.io/asoro/rhdh-install-daily-scrum-picker:latest
+  ghcr.io/rm3l/daily-scrum-picker:latest
 ```
-
-## File Structure
-
-```
-daily-scrum-picker/
-├── .gitlab-ci.yml      # GitLab CI/CD pipeline configuration
-├── Dockerfile          # Container image build instructions
-├── go.mod              # Go module definition
-├── go.sum              # Go module checksums
-├── pick_next.go        # Main application code
-├── team.txt            # Team members configuration
-└── README.md          # This file
-``` 

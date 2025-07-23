@@ -1,4 +1,4 @@
-module gitlab.cee.redhat.com/asoro/rhdh-install-daily-scrum-picker
+module github.com/rm3l/daily-scrum-picker
 
 go 1.24.4
 

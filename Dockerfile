@@ -13,10 +13,10 @@ RUN go mod download
 COPY pick_next.go ./
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o scrum-picker pick_next.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o daily-scrum-picker pick_next.go
 
 # Runtime stage
-FROM docker.io/library/alpine:latest
+FROM docker.io/library/alpine:3.22
 
 # Install ca-certificates for HTTPS requests if needed
 RUN apk --no-cache add ca-certificates
@@ -24,14 +24,11 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app
 
 # Copy the binary from builder stage
-COPY --from=builder /app/scrum-picker .
-
-# Copy the default team file
-COPY team.txt ./
+COPY --from=builder /app/daily-scrum-picker .
 
 # Create a non-root user
-RUN adduser -D -s /bin/sh scrumuser
-USER scrumuser
+RUN adduser -D -s /bin/sh scrummaster
+USER scrummaster
 
 # Set the entrypoint
-ENTRYPOINT ["./scrum-picker"] 
+ENTRYPOINT ["./daily-scrum-picker"]
