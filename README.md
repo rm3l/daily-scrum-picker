@@ -56,10 +56,15 @@ The tool runs in interactive mode with **single-keypress commands** - no need to
 
 ```bash
 # Mount your custom team file
-podman run -it --rm -v ./my-team.txt:/app/team.txt ghcr.io/rm3l/daily-scrum-picker:latest
+podman run -it --rm \
+  -v ./my-team.txt:/app/team.txt \
+  ghcr.io/rm3l/daily-scrum-picker:latest
 
 # Or use a different file path with environment variable
-podman run -it --rm -v ./teams:/app/teams -e TEAM_FILE=teams/backend.txt ghcr.io/rm3l/daily-scrum-picker:latest
+podman run -it --rm \
+  -v ./teams:/app/teams \
+  -e TEAM_FILE=teams/backend.txt \
+  ghcr.io/rm3l/daily-scrum-picker:latest
 ```
 
 **Available commands (single keypress):**
