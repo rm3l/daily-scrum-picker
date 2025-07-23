@@ -147,36 +147,6 @@ podman run -it --rm \
   quay.io/asoro/rhdh-install-daily-scrum-picker:latest
 ```
 
-## Container Registry Setup
-
-### GitLab CI/CD Variables
-
-To enable automatic container builds and pushes to Quay.io, configure these variables in your GitLab project settings (`Settings > CI/CD > Variables`):
-
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `QUAY_USERNAME` | Your Quay.io username | `your-username` |
-| `QUAY_PASSWORD` | Your Quay.io password or robot token | `your-password-or-token` |
-| `QUAY_REPOSITORY` | Target repository on Quay.io | `asoro/rhdh-install-daily-scrum-picker` |
-
-### Container Image Tags
-
-The CI pipeline creates different tags based on the git ref:
-
-- **Main branch**: `latest` and `<commit-sha>`
-- **Tagged releases**: `<tag-name>` and `latest`
-- **Feature branches**: `<branch-name>-<commit-sha>` (manual trigger)
-
-## Technical Details
-
-- **Language**: Go 1.24.4
-- **Dependencies**: Standard library + `golang.org/x/term` for raw terminal input
-- **Container**: Multi-stage Docker build with Alpine Linux runtime
-- **Registry**: Automated builds pushed to Quay.io via GitLab CI
-- **Configuration**: Team file (default: `team.txt`, configurable via `TEAM_FILE` env var)
-- **Input Mode**: Raw terminal input for immediate keypress response
-- **Randomization**: Uses `math/rand` with time-based seeding
-
 ## File Structure
 
 ```
