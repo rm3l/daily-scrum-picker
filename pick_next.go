@@ -5,17 +5,24 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
-
-const stateFile = "remaining.txt"
 
 func getTeamFile() string {
 	if teamFile := os.Getenv("TEAM_FILE"); teamFile != "" {
 		return teamFile
 	}
 	return "team.txt"
+}
+
+func getStateFile() string {
+	if stateFile := os.Getenv("STATE_FILE"); stateFile != "" {
+		return stateFile
+	}
+	// Use temporary directory for state file to ensure it's writable
+	return filepath.Join(os.TempDir(), "daily-scrum-picker-remaining.txt")
 }
 
 func main() {
@@ -34,7 +41,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	remaining := loadRemaining(teamMembers)
+	stateFile := getStateFile()
+	remaining := loadRemaining(teamMembers, stateFile)
 
 	// If no one left, reset
 	if len(remaining) == 0 {
@@ -47,7 +55,7 @@ func main() {
 	remaining = remaining[1:]
 
 	// Save updated list
-	saveRemaining(remaining)
+	saveRemaining(remaining, stateFile)
 
 	fmt.Printf("Next is... %s\n", picked)
 }
@@ -77,7 +85,7 @@ func loadTeamMembers(teamFile string) ([]string, error) {
 }
 
 // Load remaining names from file; if not exists, return full list shuffled
-func loadRemaining(teamMembers []string) []string {
+func loadRemaining(teamMembers []string, stateFile string) []string {
 	file, err := os.Open(stateFile)
 	if err != nil {
 		// File not found → start fresh
@@ -97,7 +105,7 @@ func loadRemaining(teamMembers []string) []string {
 }
 
 // Save remaining names to file
-func saveRemaining(names []string) {
+func saveRemaining(names []string, stateFile string) {
 	if len(names) == 0 {
 		// Remove file to reset
 		os.Remove(stateFile)
