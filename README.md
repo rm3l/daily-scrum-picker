@@ -56,28 +56,45 @@ Next is... Leanne
 - **Auto-cleanup**: The state file is automatically removed when empty and recreated as needed
 - **Reset Logic**: When no one is left in the remaining list, the tool automatically shuffles and restarts
 
-## Customization
+## Configuration
 
-To modify the team members, edit the `teamMembers` slice in `pick_next.go`:
+### Team Members
 
-```go
-var teamMembers = []string{
-    "Your",
-    "Team",
-    "Members",
-    "Here",
-}
+Team members are configured via a team file. By default, the tool looks for `team.txt`, but you can specify a different file using the `TEAM_FILE` environment variable.
+
+Create or edit the team file with one team member name per line:
+
+```
+# Daily Scrum Team Members
+# Add one team member name per line
+# Lines starting with # are ignored
+
+Alice
+Bob
+Charlie
+Diana
 ```
 
-Then rebuild the application:
+#### Using a Custom Team File
+
+You can specify a different team file location using the `TEAM_FILE` environment variable:
+
 ```bash
-go build -o scrum-picker pick_next.go
+# Use a different file
+export TEAM_FILE="my-team.txt"
+go run pick_next.go
+
+# Or inline
+TEAM_FILE="teams/backend-team.txt" go run pick_next.go
 ```
+
+The tool will automatically read from the specified file when started. If the file doesn't exist, you'll get a helpful error message.
 
 ## Technical Details
 
 - **Language**: Go 1.24.4
 - **Dependencies**: Standard library only
+- **Configuration**: Team file (default: `team.txt`, configurable via `TEAM_FILE` env var)
 - **State Storage**: Plain text file (`remaining.txt`)
 - **Randomization**: Uses `math/rand` with time-based seeding
 
@@ -87,6 +104,7 @@ go build -o scrum-picker pick_next.go
 daily-scrum-picker/
 ├── go.mod              # Go module definition
 ├── pick_next.go        # Main application code
+├── team.txt            # Team members configuration
 ├── remaining.txt       # State file (created automatically)
 └── README.md          # This file
 ``` 
