@@ -12,6 +12,33 @@ import (
 	"golang.org/x/term"
 )
 
+// ANSI color codes - universal colors for both dark and light terminals
+const (
+	ColorReset = "\033[0m"
+
+	// Standard colors that work universally
+	ColorRed    = "\033[31m" // Good on both backgrounds
+	ColorGreen  = "\033[32m" // Good on both backgrounds
+	ColorBlue   = "\033[34m" // Good on both backgrounds
+	ColorPurple = "\033[35m" // Good on both backgrounds
+
+	// Text formatting
+	Bold      = "\033[1m"
+	Underline = "\033[4m"
+
+	// Universal color combinations - tested for readability on both backgrounds
+	BoldRed    = "\033[1;31m" // Excellent on both
+	BoldGreen  = "\033[1;32m" // Excellent on both
+	BoldBlue   = "\033[1;34m" // Excellent on both
+	BoldPurple = "\033[1;35m" // Excellent on both
+
+	// Using darker variants for even better contrast
+	DarkRed   = "\033[38;5;124m" // Dark red - great on both
+	DarkGreen = "\033[38;5;22m"  // Dark green - great on both
+	DarkBlue  = "\033[38;5;18m"  // Dark blue - great on both
+	BrightRed = "\033[91m"       // Bright red - good on both
+)
+
 func getTeamFile() string {
 	if teamFile := os.Getenv("TEAM_FILE"); teamFile != "" {
 		return teamFile
@@ -187,43 +214,50 @@ func pickNextPerson(teamMembers []string, stateFile string) {
 	// Save updated list
 	saveRemaining(remaining, stateFile)
 
-	fmt.Printf("🎯 Next is... %s\n", picked)
+	// Display the picked person with prominent formatting - using colors that work on both backgrounds
+	fmt.Printf("🎯 Next is... %s%s%s%s\n",
+		Bold, BoldBlue, picked, ColorReset)
 
-	// Show remaining count
+	// Show remaining count with color that works universally
 	if len(remaining) > 0 {
-		fmt.Printf("(%d people remaining in this round)\n", len(remaining))
+		fmt.Printf("%s(%d people remaining in this round)%s\n",
+			BrightRed, len(remaining), ColorReset)
 	} else {
-		fmt.Println("(That was the last person in this round)")
+		fmt.Printf("%s(That was the last person in this round)%s\n",
+			BoldGreen, ColorReset)
 	}
 }
 
 func resetState(teamMembers []string, stateFile string) {
 	// Remove state file to reset
 	os.Remove(stateFile)
-	fmt.Printf("✅ State reset! All %d team members are available for selection.\n", len(teamMembers))
+	fmt.Printf("%s✅ State reset! All %d team members are available for selection.%s\n",
+		BoldGreen, len(teamMembers), ColorReset)
 }
 
 func showStatus(teamMembers []string, stateFile string) {
 	remaining := loadRemaining(teamMembers, stateFile)
 
-	fmt.Printf("📊 Status:\n")
-	fmt.Printf("  Total team members: %d\n", len(teamMembers))
-	fmt.Printf("  Remaining this round: %d\n", len(remaining))
+	fmt.Printf("%s📊 Status:%s\n", BoldBlue, ColorReset)
+	fmt.Printf("  Total team members: %s%d%s\n", DarkBlue, len(teamMembers), ColorReset)
+	fmt.Printf("  Remaining this round: %s%d%s\n", BrightRed, len(remaining), ColorReset)
 
 	if len(remaining) > 0 {
-		fmt.Printf("  Still to pick: %s\n", strings.Join(remaining, ", "))
+		fmt.Printf("  Still to pick: %s%s%s\n",
+			DarkGreen, strings.Join(remaining, ", "), ColorReset)
 	} else {
-		fmt.Println("  Everyone has been picked this round")
+		fmt.Printf("  %sEveryone has been picked this round%s\n",
+			BoldGreen, ColorReset)
 	}
 }
 
 func showHelp() {
-	fmt.Println("\n📋 Available commands:")
-	fmt.Println("  p, pick   - Pick the next person for daily scrum")
-	fmt.Println("  r, reset  - Reset state and start over with all team members")
-	fmt.Println("  s, status - Show current status and remaining team members")
-	fmt.Println("  h, help   - Show this help message")
-	fmt.Println("  q, quit   - Exit the program")
+	fmt.Printf("\n%s📋 Available commands:%s\n", BoldBlue, ColorReset)
+	fmt.Printf("  %sp%s, pick   - Pick the next person for daily scrum\n", BoldGreen, ColorReset)
+	fmt.Printf("  %sr%s, reset  - Reset state and start over with all team members\n", BrightRed, ColorReset)
+	fmt.Printf("  %ss%s, status - Show current status and remaining team members\n", BoldBlue, ColorReset)
+	fmt.Printf("  %sh%s, help   - Show this help message\n", BoldPurple, ColorReset)
+	fmt.Printf("  %sq%s, quit   - Exit the program\n", BoldRed, ColorReset)
 	fmt.Println()
 }
 
