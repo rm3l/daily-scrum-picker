@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"golang.org/x/term"
 )
@@ -55,8 +54,6 @@ func getStateFile() string {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
 	teamFile := getTeamFile()
 	teamMembers, err := loadTeamMembers(teamFile)
 	if err != nil {
