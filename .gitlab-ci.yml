@@ -1,3 +1,6 @@
+workflow:
+  name: "Daily Scrum Picker - Build & Deploy"
+
 variables:
   # Default values - can be overridden in GitLab project variables
   QUAY_REGISTRY: "quay.io"
