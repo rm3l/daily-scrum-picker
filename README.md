@@ -57,6 +57,13 @@ go run pick_next.go -t /path/to/my-team.txt
 ./daily-scrum-picker -t teams/backend.txt
 ```
 
+Or read team members from stdin using `-`:
+
+```bash
+echo -e "Alice\nBob\nCharlie" | ./daily-scrum-picker -t -
+cat team-members.txt | go run pick_next.go --team-file=-
+```
+
 ### Container Usage
 
 This tool is also available as a container image on ghcr.io. This allows you to use the tool without cloning the repository or installing Go.
@@ -130,9 +137,9 @@ Goodbye!
 
 ### Team Members
 
-Team members are configured via a team file. By default, the tool looks for `team.txt` in the same directory where it is run, but you can specify a different file using either:
+Team members are configured via a team file or stdin. By default, the tool looks for `team.txt` in the same directory where it is run, but you can specify a different source using either:
 
-1. The `--team-file` (or `-t`) command-line flag
+1. The `--team-file` (or `-t`) command-line flag (file path or `-` for stdin)
 2. The `TEAM_FILE` environment variable
 
 Create or edit the team file with one team member name per line:
@@ -150,11 +157,11 @@ Diana
 
 #### Configuration Options
 
-The tool supports multiple ways to specify the team file (in order of precedence):
+The tool supports multiple ways to specify the team source (in order of precedence):
 
 | Method | Description | Priority |
 |--------|-------------|----------|
-| `--team-file` / `-t` flag | Path to team members file | **Highest** (overrides environment variable) |
+| `--team-file` / `-t` flag | Path to team members file or `-` for stdin | **Highest** (overrides environment variable) |
 | `TEAM_FILE` environment variable | Path to team members file | Medium |
 | Default | Uses `team.txt` in current directory | Lowest |
 
@@ -169,6 +176,10 @@ go run pick_next.go --team-file="/path/to/my-team.txt"
 go run pick_next.go -t "/path/to/my-team.txt"
 ./daily-scrum-picker -t "teams/backend.txt"
 
+# Reading from stdin
+echo -e "Alice\nBob\nCharlie\nDiana" | ./daily-scrum-picker -t -
+cat my-team.txt | go run pick_next.go --team-file=-
+
 # Using environment variable
 export TEAM_FILE="/path/to/my-team.txt"
 go run pick_next.go
@@ -180,6 +191,10 @@ TEAM_FILE="/path/to/teams/backend-team.txt" go run pick_next.go
 TEAM_FILE="/path/to/env-team.txt" go run pick_next.go -t "/path/to/flag-team.txt"
 # Will use /path/to/flag-team.txt (flag overrides environment variable)
 
+# Stdin takes precedence over environment variable
+TEAM_FILE="/path/to/env-team.txt" echo -e "User1\nUser2" | ./daily-scrum-picker -t -
+# Will read from stdin (flag overrides environment variable)
+
 # Container usage with environment variable
 podman run -it --rm \
   -v ./teams:/app/teams \
@@ -190,6 +205,14 @@ podman run -it --rm \
 podman run -it --rm \
   -v ./my-team.txt:/app/team.txt \
   ghcr.io/rm3l/daily-scrum-picker:main -t /app/team.txt
+
+# Dynamic team selection from command output
+git log --format="%an" --since="1 month ago" | sort -u | ./daily-scrum-picker -t -
+# Uses recent Git contributors as team members
+
+# Integration with other tools
+curl -s https://api.github.com/repos/owner/repo/contributors | jq -r '.[].login' | head -10 | ./daily-scrum-picker -t -
+# Uses GitHub contributors as team members
 ```
 
 ## License
