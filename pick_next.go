@@ -71,7 +71,7 @@ var rootCmd = &cobra.Command{
 var teamFileFlag string
 
 func init() {
-	rootCmd.Flags().StringVarP(&teamFileFlag, "team-file", "t", "", "Path to team members file (overrides TEAM_FILE environment variable)")
+	rootCmd.Flags().StringVarP(&teamFileFlag, "team-file", "t", "", "Path to team members file, or '-' for stdin (overrides TEAM_FILE environment variable)")
 }
 
 func runApp(cmd *cobra.Command, args []string) {
@@ -79,12 +79,20 @@ func runApp(cmd *cobra.Command, args []string) {
 	teamMembers, err := loadTeamMembers(teamFile)
 	if err != nil {
 		fmt.Printf("Error loading team members: %v\n", err)
-		fmt.Printf("Please create a '%s' file with one team member name per line.\n", teamFile)
+		if teamFile != "-" {
+			fmt.Printf("Please create a '%s' file with one team member name per line.\n", teamFile)
+		} else {
+			fmt.Printf("Please provide team member names via stdin (one per line).\n")
+		}
 		os.Exit(1)
 	}
 
 	if len(teamMembers) == 0 {
-		fmt.Printf("No team members found in '%s'. Please add team member names (one per line).\n", teamFile)
+		if teamFile != "-" {
+			fmt.Printf("No team members found in '%s'. Please add team member names (one per line).\n", teamFile)
+		} else {
+			fmt.Printf("No team members found in stdin. Please provide team member names (one per line).\n")
+		}
 		os.Exit(1)
 	}
 
@@ -92,7 +100,11 @@ func runApp(cmd *cobra.Command, args []string) {
 
 	// Print welcome message and instructions
 	fmt.Println("=== Daily Scrum Picker ===")
-	fmt.Printf("Team file: %s (%d members)\n", teamFile, len(teamMembers))
+	if teamFile == "-" {
+		fmt.Printf("Team source: stdin (%d members)\n", len(teamMembers))
+	} else {
+		fmt.Printf("Team file: %s (%d members)\n", teamFile, len(teamMembers))
+	}
 	fmt.Printf("State file: %s\n", stateFile)
 	fmt.Println("\nCommands:")
 	fmt.Println("  p - Pick next person")
@@ -286,16 +298,24 @@ func showHelp() {
 	fmt.Println()
 }
 
-// Load team members from file
+// Load team members from file or stdin
 func loadTeamMembers(teamFile string) ([]string, error) {
-	file, err := os.Open(teamFile)
-	if err != nil {
-		return nil, err
+	var scanner *bufio.Scanner
+
+	if teamFile == "-" {
+		// Read from stdin
+		scanner = bufio.NewScanner(os.Stdin)
+	} else {
+		// Read from file
+		file, err := os.Open(teamFile)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		scanner = bufio.NewScanner(file)
 	}
-	defer file.Close()
 
 	var members []string
-	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		name := strings.TrimSpace(scanner.Text())
 		if name != "" && !strings.HasPrefix(name, "#") {
