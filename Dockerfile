@@ -3,6 +3,8 @@ FROM docker.io/library/golang:1.24.4-alpine AS builder
 
 WORKDIR /app
 
+COPY LICENSE ./
+
 # Copy go mod and sum files
 COPY go.mod go.sum ./
 

@@ -6,14 +6,16 @@
 README.md
 
 # CI/CD files
-.gitlab-ci.yml
+.github/
 
-# Runtime state files (these should be mounted as volumes)
+# Runtime state files
 remaining.txt
 
 # Build artifacts
-scrum-picker
+daily-scrum-picker
 
 # Development files
 *.log
-*.tmp 
+*.tmp
+
+team.txt

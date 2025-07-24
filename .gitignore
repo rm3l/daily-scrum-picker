@@ -1,2 +1,11 @@
 team.txt
-./daily-scrum-picker
+
+# Runtime state files
+remaining.txt
+
+# Build artifacts
+daily-scrum-picker
+
+# Development files
+*.log
+*.tmp
