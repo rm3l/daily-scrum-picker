@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
 
@@ -40,10 +41,16 @@ const (
 
 const goodbyeMessage = "Goodbye!"
 
-func getTeamFile() string {
+func getTeamFile(flagValue string) string {
+	// Command-line flag takes precedence (standard practice)
+	if flagValue != "" {
+		return flagValue
+	}
+	// Environment variable as fallback
 	if teamFile := os.Getenv("TEAM_FILE"); teamFile != "" {
 		return teamFile
 	}
+	// Default fallback
 	return "team.txt"
 }
 
@@ -55,8 +62,20 @@ func getStateFile() string {
 	return filepath.Join(os.TempDir(), "daily-scrum-picker-remaining.txt")
 }
 
-func main() {
-	teamFile := getTeamFile()
+var rootCmd = &cobra.Command{
+	Use:   "daily-scrum-picker",
+	Short: "A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings",
+	Run:   runApp,
+}
+
+var teamFileFlag string
+
+func init() {
+	rootCmd.Flags().StringVarP(&teamFileFlag, "team-file", "t", "", "Path to team members file (overrides TEAM_FILE environment variable)")
+}
+
+func runApp(cmd *cobra.Command, args []string) {
+	teamFile := getTeamFile(teamFileFlag)
 	teamMembers, err := loadTeamMembers(teamFile)
 	if err != nil {
 		fmt.Printf("Error loading team members: %v\n", err)
@@ -89,6 +108,13 @@ func main() {
 	} else {
 		fmt.Println("\nType commands and press Enter:")
 		runBufferedMode(teamMembers, stateFile)
+	}
+}
+
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }
 
