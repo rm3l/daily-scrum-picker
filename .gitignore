@@ -9,3 +9,10 @@ daily-scrum-picker
 # Development files
 *.log
 *.tmp
+
+# Test artifacts
+coverage
+coverage.out
+coverage.html
+*.cover
+*.coverprofile

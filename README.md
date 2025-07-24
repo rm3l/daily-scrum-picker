@@ -1,5 +1,7 @@
 # Daily Scrum Picker
 
+[![Tests](https://github.com/rm3l/daily-scrum-picker/actions/workflows/test.yaml/badge.svg)](https://github.com/rm3l/daily-scrum-picker/actions/workflows/test.yaml)
+[![codecov](https://codecov.io/gh/rm3l/daily-scrum-picker/branch/main/graph/badge.svg)](https://codecov.io/gh/rm3l/daily-scrum-picker)
 [![Build and publish container image](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml/badge.svg)](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml)
 
 A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings.
@@ -21,7 +23,7 @@ This tool ensures fair rotation of team members during daily stand-ups by automa
 
 ### Prerequisites
 
-- Go 1.24+
+- Go 1.23+ (tested with Go 1.23 and 1.24)
 
 ### Setup
 
@@ -214,6 +216,40 @@ git log --format="%an" --since="1 month ago" | sort -u | ./daily-scrum-picker -t
 curl -s https://api.github.com/repos/owner/repo/contributors | jq -r '.[].login' | head -10 | ./daily-scrum-picker -t -
 # Uses GitHub contributors as team members
 ```
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+go test -v
+
+# Run tests with coverage
+go test -v -race -coverprofile=coverage.out
+go tool cover -func=coverage.out
+
+# Run benchmarks
+go test -bench=. -benchmem
+
+# Run linting (requires golangci-lint)
+golangci-lint run
+```
+
+### CI/CD
+
+The project includes comprehensive GitHub Actions workflows:
+
+- **Tests** (`test.yaml`): Runs on every push and PR
+  - Tests on Go 1.23 and 1.24
+  - Includes race detection, benchmarks, and coverage reporting
+  - Uploads coverage reports to Codecov
+  - Runs linting with golangci-lint
+  
+- **Build** (`build-and-publish-container-image.yaml`): Builds and publishes container images
+  - Runs tests before building to ensure quality
+  - Publishes to GitHub Container Registry
+  - Signs images with cosign
 
 ## License
 
