@@ -10,7 +10,7 @@ A simple Go utility to fairly select the next person to speak during daily scrum
 
 This tool ensures fair rotation of team members during daily stand-ups by automatically tracking who has spoken and resetting when everyone has had a turn.
 
-## How It Works
+**Features:**
 
 1. **Fair Rotation**: Tracks who hasn't spoken yet automatically
 2. **Random Shuffling**: When everyone has had a turn, shuffles the team list for the next cycle
@@ -50,24 +50,24 @@ go build -o daily-scrum-picker pick_next.go
 
 ### Container Usage
 
-The application is also available as a container image on ghcr.io. This allows you to use the tool without cloning the repository or installing Go.
+This tool is also available as a container image on ghcr.io. This allows you to use the tool without cloning the repository or installing Go.
 
-#### Interactive Mode
-
-The tool runs in interactive mode with **single-keypress commands** - no need to press Enter:
+It runs in interactive mode with **single-keypress commands** - no need to press Enter:
 
 ```bash
 # Mount your custom team file
 podman run -it --rm \
   -v ./my-team.txt:/app/team.txt \
-  ghcr.io/rm3l/daily-scrum-picker:latest
+  ghcr.io/rm3l/daily-scrum-picker:main
 
 # Or use a different file path with environment variable
 podman run -it --rm \
   -v ./teams:/app/teams \
   -e TEAM_FILE=teams/backend.txt \
-  ghcr.io/rm3l/daily-scrum-picker:latest
+  ghcr.io/rm3l/daily-scrum-picker:main
 ```
+
+### Interactive Mode
 
 **Available commands (single keypress):**
 
@@ -102,14 +102,17 @@ Press any key (no Enter needed):
 > p
 🎯 Next is... Alice
 (5 people remaining in this round)
+
 > p
 🎯 Next is... Charlie
 (4 people remaining in this round)
+
 > s
 📊 Status:
   Total team members: 6
   Remaining this round: 4
   Still to pick: Bob, Diana, Frank, Grace
+
 > q
 Goodbye!
 ```
@@ -155,7 +158,7 @@ TEAM_FILE="/path/to/teams/backend-team.txt" go run pick_next.go
 podman run -it --rm \
   -v ./teams:/app/teams \
   -e TEAM_FILE=teams/backend.txt \
-  ghcr.io/rm3l/daily-scrum-picker:latest
+  ghcr.io/rm3l/daily-scrum-picker:main
 ```
 
 ## License
