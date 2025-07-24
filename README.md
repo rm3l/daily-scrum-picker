@@ -33,7 +33,7 @@ git clone https://github.com/rm3l/daily-scrum-picker.git && cd daily-scrum-picke
 
 ### Local Development
 
-1. Create a local `teams.txt` file containing the names of your team members. See [Team members](#team-members) for more details.
+1. Create a local `team.txt` file containing the names of your team members. See [Team members](#team-members) for more details.
 
 2. Simply run with Go:
 
@@ -46,6 +46,15 @@ Alternatively, you can build and run the executable:
 ```bash
 go build -o daily-scrum-picker pick_next.go
 ./daily-scrum-picker
+```
+
+You can also specify a custom team file using the `--team-file` (or `-t`) flag:
+
+```bash
+go run pick_next.go --team-file=/path/to/my-team.txt
+go run pick_next.go -t /path/to/my-team.txt
+./daily-scrum-picker --team-file=teams/backend.txt
+./daily-scrum-picker -t teams/backend.txt
 ```
 
 ### Container Usage
@@ -121,7 +130,10 @@ Goodbye!
 
 ### Team Members
 
-Team members are configured via a team file. By default, the tool looks for `team.txt` in the same directory where it is run, but you can specify a different file using the `TEAM_FILE` environment variable.
+Team members are configured via a team file. By default, the tool looks for `team.txt` in the same directory where it is run, but you can specify a different file using either:
+
+1. The `--team-file` (or `-t`) command-line flag
+2. The `TEAM_FILE` environment variable
 
 Create or edit the team file with one team member name per line:
 
@@ -136,29 +148,48 @@ Charlie
 Diana
 ```
 
-#### Environment Variables
+#### Configuration Options
 
-The tool supports the `TEAM_FILE` environment variable for configuration:
+The tool supports multiple ways to specify the team file (in order of precedence):
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `TEAM_FILE` | Path to team members file | `team.txt` |
+| Method | Description | Priority |
+|--------|-------------|----------|
+| `--team-file` / `-t` flag | Path to team members file | **Highest** (overrides environment variable) |
+| `TEAM_FILE` environment variable | Path to team members file | Medium |
+| Default | Uses `team.txt` in current directory | Lowest |
 
 **Examples:**
 
 ```bash
-# Use a different team file
+# Using command-line flag (long form)
+go run pick_next.go --team-file="/path/to/my-team.txt"
+./daily-scrum-picker --team-file="teams/backend.txt"
+
+# Using command-line flag (short form)
+go run pick_next.go -t "/path/to/my-team.txt"
+./daily-scrum-picker -t "teams/backend.txt"
+
+# Using environment variable
 export TEAM_FILE="/path/to/my-team.txt"
 go run pick_next.go
 
-# Use specific team file
+# Environment variable for single run
 TEAM_FILE="/path/to/teams/backend-team.txt" go run pick_next.go
 
-# Container usage with custom team file
+# Command-line flag takes precedence over environment variable
+TEAM_FILE="/path/to/env-team.txt" go run pick_next.go -t "/path/to/flag-team.txt"
+# Will use /path/to/flag-team.txt (flag overrides environment variable)
+
+# Container usage with environment variable
 podman run -it --rm \
   -v ./teams:/app/teams \
   -e TEAM_FILE=teams/backend.txt \
   ghcr.io/rm3l/daily-scrum-picker:main
+
+# Container usage with custom team file mounted
+podman run -it --rm \
+  -v ./my-team.txt:/app/team.txt \
+  ghcr.io/rm3l/daily-scrum-picker:main -t /app/team.txt
 ```
 
 ## License
