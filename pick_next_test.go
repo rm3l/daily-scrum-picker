@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"testing"
@@ -89,12 +87,18 @@ Eve`
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			t.Logf("Warning: failed to remove temp file: %v", err)
+		}
+	}()
 
 	if _, err := tmpFile.WriteString(testContent); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
 
 	members, err := loadTeamMembers(tmpFile.Name())
 	if err != nil {
@@ -128,13 +132,23 @@ func TestLoadTeamMembers_FromStdin(t *testing.T) {
 
 	// Write test data to the pipe
 	go func() {
-		defer w.Close()
-		w.WriteString(testInput)
+		defer func() {
+			if err := w.Close(); err != nil {
+				t.Errorf("Failed to close writer: %v", err)
+			}
+		}()
+		if _, err := w.WriteString(testInput); err != nil {
+			t.Errorf("Failed to write test input: %v", err)
+		}
 	}()
 
 	// Replace stdin with our pipe
 	os.Stdin = r
-	defer r.Close()
+	defer func() {
+		if err := r.Close(); err != nil {
+			t.Logf("Warning: failed to close reader: %v", err)
+		}
+	}()
 
 	members, err := loadTeamMembers("-")
 	if err != nil {
@@ -166,8 +180,14 @@ func TestLoadTeamMembers_EmptyFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
-	tmpFile.Close()
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			t.Logf("Warning: failed to remove temp file: %v", err)
+		}
+	}()
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
 
 	members, err := loadTeamMembers(tmpFile.Name())
 	if err != nil {
@@ -188,12 +208,18 @@ func TestLoadTeamMembers_OnlyComments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			t.Logf("Warning: failed to remove temp file: %v", err)
+		}
+	}()
 
 	if _, err := tmpFile.WriteString(testContent); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
 
 	members, err := loadTeamMembers(tmpFile.Name())
 	if err != nil {
@@ -215,12 +241,18 @@ Charlie
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			t.Logf("Warning: failed to remove temp file: %v", err)
+		}
+	}()
 
 	if _, err := tmpFile.WriteString(testContent); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
 
 	members, err := loadTeamMembers(tmpFile.Name())
 	if err != nil {
@@ -283,22 +315,6 @@ func TestGetStateFile(t *testing.T) {
 	}
 }
 
-// Helper function to capture stdout for testing
-func captureOutput(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	os.Stdout = old
-
-	var buf bytes.Buffer
-	io.Copy(&buf, r)
-	return buf.String()
-}
-
 // Benchmark tests
 func BenchmarkGetTeamFile(b *testing.B) {
 	b.Setenv("TEAM_FILE", "bench-team.txt")
@@ -314,16 +330,26 @@ func BenchmarkLoadTeamMembers(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			b.Logf("Warning: failed to remove temp file: %v", err)
+		}
+	}()
 
 	// Write 1000 team members
 	for i := 0; i < 1000; i++ {
-		tmpFile.WriteString(fmt.Sprintf("Member%d\n", i))
+		if _, err := fmt.Fprintf(tmpFile, "Member%d\n", i); err != nil {
+			b.Fatalf("Failed to write to temp file: %v", err)
+		}
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		b.Fatalf("Failed to close temp file: %v", err)
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		loadTeamMembers(tmpFile.Name())
+		if _, err := loadTeamMembers(tmpFile.Name()); err != nil {
+			b.Fatalf("loadTeamMembers failed: %v", err)
+		}
 	}
 }
