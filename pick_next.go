@@ -138,7 +138,11 @@ func runRawMode(teamMembers []string, stateFile string) {
 		runBufferedMode(teamMembers, stateFile)
 		return
 	}
-	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	defer func() {
+		if err := term.Restore(int(os.Stdin.Fd()), oldState); err != nil {
+			fmt.Printf("Error restoring terminal: %v\n", err)
+		}
+	}()
 
 	for {
 		// Print prompt and flush output
@@ -156,7 +160,9 @@ func runRawMode(teamMembers []string, stateFile string) {
 		// Handle Ctrl+C
 		if char == 3 {
 			// Restore terminal before exiting
-			term.Restore(int(os.Stdin.Fd()), oldState)
+			if err := term.Restore(int(os.Stdin.Fd()), oldState); err != nil {
+				fmt.Printf("Error restoring terminal: %v\n", err)
+			}
 			fmt.Print("\n")
 			fmt.Println(goodbyeMessage)
 			return
@@ -170,7 +176,9 @@ func runRawMode(teamMembers []string, stateFile string) {
 		input := strings.ToLower(string(char))
 
 		// Restore terminal temporarily for clean output
-		term.Restore(int(os.Stdin.Fd()), oldState)
+		if err := term.Restore(int(os.Stdin.Fd()), oldState); err != nil {
+			fmt.Printf("Error restoring terminal: %v\n", err)
+		}
 
 		// Clear current line and show command
 		fmt.Printf("\r> %s\n", input)
@@ -267,7 +275,9 @@ func pickNextPerson(teamMembers []string, stateFile string) {
 
 func resetState(teamMembers []string, stateFile string) {
 	// Remove state file to reset
-	os.Remove(stateFile)
+	if err := os.Remove(stateFile); err != nil && !os.IsNotExist(err) {
+		fmt.Printf("Warning: failed to remove state file: %v\n", err)
+	}
 	fmt.Printf("%s✅ State reset! All %d team members are available for selection.%s\n",
 		BoldGreen, len(teamMembers), ColorReset)
 }
@@ -311,7 +321,11 @@ func loadTeamMembers(teamFile string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				fmt.Printf("Warning: failed to close file: %v\n", err)
+			}
+		}()
 		scanner = bufio.NewScanner(file)
 	}
 
@@ -337,7 +351,11 @@ func loadRemaining(teamMembers []string, stateFile string) []string {
 		// File not found → start fresh
 		return shuffle(copySlice(teamMembers))
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	var names []string
 	scanner := bufio.NewScanner(file)
@@ -354,7 +372,9 @@ func loadRemaining(teamMembers []string, stateFile string) []string {
 func saveRemaining(names []string, stateFile string) {
 	if len(names) == 0 {
 		// Remove file to reset
-		os.Remove(stateFile)
+		if err := os.Remove(stateFile); err != nil && !os.IsNotExist(err) {
+			fmt.Printf("Warning: failed to remove state file: %v\n", err)
+		}
 		return
 	}
 
@@ -363,10 +383,17 @@ func saveRemaining(names []string, stateFile string) {
 		fmt.Printf("Error writing state file: %v\n", err)
 		os.Exit(1)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	for _, name := range names {
-		file.WriteString(name + "\n")
+		if _, err := file.WriteString(name + "\n"); err != nil {
+			fmt.Printf("Error writing to state file: %v\n", err)
+			return
+		}
 	}
 }
 
