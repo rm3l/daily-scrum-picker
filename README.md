@@ -1,7 +1,7 @@
 # Daily Scrum Picker
 
 [![Tests](https://github.com/rm3l/daily-scrum-picker/actions/workflows/test.yaml/badge.svg)](https://github.com/rm3l/daily-scrum-picker/actions/workflows/test.yaml)
-[![codecov](https://codecov.io/gh/rm3l/daily-scrum-picker/branch/main/graph/badge.svg)](https://codecov.io/gh/rm3l/daily-scrum-picker)
+<!--[![codecov](https://codecov.io/gh/rm3l/daily-scrum-picker/branch/main/graph/badge.svg)](https://codecov.io/gh/rm3l/daily-scrum-picker)-->
 [![Build and publish container image](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml/badge.svg)](https://github.com/rm3l/daily-scrum-picker/actions/workflows/build-and-publish-container-image.yaml)
 
 A simple Go utility to fairly select the next person to speak during daily scrum/stand-up meetings.
