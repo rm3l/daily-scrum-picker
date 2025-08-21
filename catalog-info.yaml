@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: daily-scrum-picker
+  annotations:
+    github.com/project-slug: rm3l/daily-scrum-picker
+spec:
+  type: other
+  lifecycle: unknown
+  owner: user:default/guest
