@@ -18,7 +18,7 @@ COPY pick_next.go ./
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o daily-scrum-picker pick_next.go
 
 # Runtime stage
-FROM docker.io/library/alpine:3.22
+FROM docker.io/library/alpine:3.23
 
 # Install ca-certificates for HTTPS requests if needed
 RUN apk --no-cache add ca-certificates
