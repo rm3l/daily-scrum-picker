@@ -3,7 +3,7 @@ module github.com/rm3l/daily-scrum-picker
 go 1.24.4
 
 require (
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	golang.org/x/term v0.37.0
 )
 
